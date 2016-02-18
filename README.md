@@ -1,12 +1,14 @@
 # symSizeComp
 
-Usage: symSizeComb bin1 bin2
+    Usage: symSizeComb bin1 bin2 [-disassemble]
+      -disassemble
+              if true, display disassembly of non-matching functions
 
 I'm currently using this to determine code size differences when modifying rewrite
 rules in go's dev.ssa branch.
 
 
-	todd@tz-lab$ symSizeComp ~/Projects/go/bin/go ~/Projects/goclean/bin/go  | head
+	todd@tz-lab$ symSizeComp ~/Projects/go/bin/go ~/Projects/goclean/bin/go 
 	# delta name sz1 sz2
 	-16 fmt.getField 272 288
 	-16 syscall.WaitStatus.ExitStatus 64 80
