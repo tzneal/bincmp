@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -14,16 +15,29 @@ type symbols map[string]int64
 
 func main() {
 	disFlag := flag.Bool("disassemble", false, "if true, display disassembly of non-matching functions")
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "%s [--disassemble] bin1 bin2\n", os.Args[0])
+		flag.PrintDefaults()
+	}
 	flag.Parse()
-	f1 := flag.Arg(0)
-	f2 := flag.Arg(1)
 
-	f1Sym := parseSyms(f1)
-	f2Sym := parseSyms(f2)
+	if flag.NArg() != 2 {
+		flag.Usage()
+		return
+	}
+
+	fn1 := flag.Arg(0)
+	fn2 := flag.Arg(1)
+	ensureExists(fn1)
+	ensureExists(fn2)
+
+	f1Sym := parseSyms(fn1)
+	f2Sym := parseSyms(fn2)
 	var f1Dis, f2Dis dsyms
 	if *disFlag {
-		f1Dis = disassemble(f1)
-		f2Dis = disassemble(f2)
+		f1Dis = disassemble(fn1)
+		f2Dis = disassemble(fn2)
 	}
 
 	delta := int64(0)
@@ -55,9 +69,9 @@ func main() {
 
 	// finally print out a size summary
 	if delta > 0 {
-		fmt.Printf("%s is bigger than %s [%d]\n", f1, f2, delta)
+		fmt.Printf("%s is bigger than %s [%d]\n", fn1, fn2, delta)
 	} else if delta < 0 {
-		fmt.Printf("%s is smaller than %s [%d]\n", f1, f2, delta)
+		fmt.Printf("%s is smaller than %s [%d]\n", fn1, fn2, delta)
 	}
 
 }
@@ -68,11 +82,13 @@ func run(args ...string) *bufio.Scanner {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "error executing command: %v\n", args)
+		os.Exit(1)
 	}
 	err = cmd.Start()
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "error starting command: %v\n", args)
+		os.Exit(1)
 	}
 
 	return bufio.NewScanner(cmdReader)
@@ -110,7 +126,8 @@ func disassemble(fn string) dsyms {
 	// regexp for maching the start of disassembly for a symbol
 	startDis, err := regexp.Compile("^[0-9a-f]+ <(.*?)>:$")
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "bad regexp\n")
+		os.Exit(1)
 	}
 
 	var lastSym string
@@ -162,5 +179,11 @@ func dump(sym string, s1, s2 dsyms) {
 func printSpaces(n int) {
 	for i := 0; i < n; i++ {
 		fmt.Print(" ")
+	}
+}
+func ensureExists(fn string) {
+	if _, err := os.Stat(fn); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "%s doesn't exist\n", fn)
+		os.Exit(1)
 	}
 }
