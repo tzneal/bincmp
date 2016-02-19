@@ -100,8 +100,9 @@ func parseSyms(fn string) symbols {
 	scanner := run("nm", "-S", "--size-sort", fn)
 	for scanner.Scan() {
 		line := strings.Fields(scanner.Text())
-		// address size type name
-		if len(line) != 4 {
+		// format is "address size type name"
+		// and only consider symbols in the text section (T)
+		if len(line) != 4 || line[2] != "T" {
 			continue
 		}
 		sz, err := strconv.ParseInt(line[1], 16, 64)
