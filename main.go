@@ -17,10 +17,10 @@ type symbols map[string]int64
 func main() {
 	disFlag := flag.Bool("disassemble", false, "display disassembly of non-matching functions")
 	largerFlag := flag.Bool("larger", false, "only display larger symbols")
-	uniqueFlag := flag.Bool("unoque", false, "display unique symbols (found in only one binary)")
+	uniqueFlag := flag.Bool("unique", false, "display unique symbols (found in only one binary)")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "%s [--disassemble] bin1 bin2\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "%s [--larger] [--unique] [--disassemble] bin1 bin2\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.Parse()

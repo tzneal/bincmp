@@ -1,8 +1,13 @@
 # symSizeComp
 
-    Usage: symSizeComb bin1 bin2 [-disassemble]
-      -disassemble
-              if true, display disassembly of non-matching functions
+	Usage of symSizeComp:
+	symSizeComp [--larger] [--unique] [--disassemble] bin1 bin2
+	  -disassemble
+		display disassembly of non-matching functions
+	  -larger
+		only display larger symbols
+	  -unique
+		display unique symbols (found in only one binary)
 
 # Installation
 
