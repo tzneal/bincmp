@@ -4,6 +4,11 @@
       -disassemble
               if true, display disassembly of non-matching functions
 
+# Installation
+
+	go get -u github.com/tzneal/symSizeComp
+
+
 I'm currently using this to determine code size differences when modifying rewrite
 rules in go's dev.ssa branch.
 

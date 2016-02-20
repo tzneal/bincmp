@@ -54,11 +54,11 @@ func main() {
 			if sz == sz2 {
 				continue
 			}
+			delta += sz - sz2
 			if *largerFlag && sz < sz2 {
 				continue
 			}
 			fmt.Printf("%d %s %d %d\n", sz-sz2, name, sz, sz2)
-			delta += sz - sz2
 			if *disFlag {
 				dump(name, f1Dis, f2Dis)
 			}
