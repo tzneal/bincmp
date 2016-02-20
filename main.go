@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -97,12 +98,17 @@ func run(args ...string) *bufio.Scanner {
 // parseSyms runs nm to identify the size of symbols.
 func parseSyms(fn string) symbols {
 	syms := symbols{}
-	scanner := run("nm", "-S", "--size-sort", fn)
+	var scanner *bufio.Scanner
+	if runtime.GOOS == "darwin" {
+		scanner = run("gnm", "-S", "--size-sort", fn)
+	} else {
+		scanner = run("nm", "-S", "--size-sort", fn)
+	}
 	for scanner.Scan() {
 		line := strings.Fields(scanner.Text())
 		// format is "address size type name"
 		// and only consider symbols in the text section (T)
-		if len(line) != 4 || line[2] != "T" {
+		if len(line) != 4 || (line[2] != "T" && line[2] != "t") {
 			continue
 		}
 		sz, err := strconv.ParseInt(line[1], 16, 64)
@@ -122,7 +128,12 @@ type dsyms map[string]*dsym
 // disassemble runs objdump to disassemble the binary and creates a map
 // of symbol to disassembled code.
 func disassemble(fn string) dsyms {
-	scanner := run("objdump", "-d", "--no-show-raw-insn", fn)
+	var scanner *bufio.Scanner
+	if runtime.GOOS == "darwin" {
+		scanner = run("gobjdump", "-d", "--no-show-raw-insn", fn)
+	} else {
+		scanner = run("objdump", "-d", "--no-show-raw-insn", fn)
+	}
 	ds := make(dsyms)
 	// regexp for maching the start of disassembly for a symbol
 	startDis, err := regexp.Compile("^[0-9a-f]+ <(.*?)>:$")
