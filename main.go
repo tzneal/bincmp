@@ -15,7 +15,9 @@ import (
 type symbols map[string]int64
 
 func main() {
-	disFlag := flag.Bool("disassemble", false, "if true, display disassembly of non-matching functions")
+	disFlag := flag.Bool("disassemble", false, "display disassembly of non-matching functions")
+	largerFlag := flag.Bool("larger", false, "only display larger symbols")
+	uniqueFlag := flag.Bool("unoque", false, "display unique symbols (found in only one binary)")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "%s [--disassemble] bin1 bin2\n", os.Args[0])
@@ -52,6 +54,9 @@ func main() {
 			if sz == sz2 {
 				continue
 			}
+			if *largerFlag && sz < sz2 {
+				continue
+			}
 			fmt.Printf("%d %s %d %d\n", sz-sz2, name, sz, sz2)
 			delta += sz - sz2
 			if *disFlag {
@@ -60,12 +65,14 @@ func main() {
 		}
 	}
 
-	// any remaining symbols must only be in one of the files, so identify them
-	for name := range f1Sym {
-		fmt.Printf("-%s\n", name)
-	}
-	for name := range f2Sym {
-		fmt.Printf("+%s\n", name)
+	if *uniqueFlag {
+		// any remaining symbols must only be in one of the files, so identify them
+		for name := range f1Sym {
+			fmt.Printf("-%s\n", name)
+		}
+		for name := range f2Sym {
+			fmt.Printf("+%s\n", name)
+		}
 	}
 
 	// finally print out a size summary
