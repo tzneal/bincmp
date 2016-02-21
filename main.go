@@ -45,12 +45,15 @@ func main() {
 
 	delta := int64(0)
 	fmt.Println("# delta name sz1 sz2")
+	var f1Sz, f2Sz int64
 	for name, sz := range f1Sym {
 		if sz2, ok := f2Sym[name]; ok {
 			// removing from maps so we can determine and print out the
 			// symbols found in only one of the binaries
 			delete(f1Sym, name)
 			delete(f2Sym, name)
+			f1Sz += sz
+			f2Sz += sz2
 			if sz == sz2 {
 				continue
 			}
@@ -76,10 +79,11 @@ func main() {
 	}
 
 	// finally print out a size summary
+	pctChange := (float64(f1Sz)/float64(f2Sz) - 1) * 100
 	if delta > 0 {
-		fmt.Printf("%s is bigger than %s [%d]\n", fn1, fn2, delta)
+		fmt.Printf("%s is bigger than %s [%d bytes, %f%%]\n", fn1, fn2, delta, pctChange)
 	} else if delta < 0 {
-		fmt.Printf("%s is smaller than %s [%d]\n", fn1, fn2, delta)
+		fmt.Printf("%s is smaller than %s [%d bytes, %f%%]\n", fn1, fn2, delta, pctChange)
 	}
 
 }
