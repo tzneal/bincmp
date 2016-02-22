@@ -254,7 +254,7 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 		fmt.Printf("%s = %d bytes (%f%%)\n", decodeType(k), szDiff, pct)
 	}
 	pct := 100 * (float64(biTotSz)/float64(bi2TotSz) - 1)
-	fmt.Printf("Total difference %d bytes (%f%%)\n", bi2TotSz-biTotSz, pct)
+	fmt.Printf("Total difference %d bytes (%f%%)\n", biTotSz-bi2TotSz, pct)
 
 }
 
