@@ -79,14 +79,15 @@ func run(args ...string) *bufio.Scanner {
 // parseSymbol parses a line of output from nm and returns a symbol.
 func parseSymbol(line []string) (*symbol, error) {
 	// format is "address size type name"
-	if len(line) != 4 {
+	if len(line) < 4 || len(line[2]) != 1 {
 		return nil, errors.New(fmt.Sprintf("unexpected format %v", line))
 	}
 	size, err := strconv.ParseInt(line[1], 16, 64)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("couldn't parse size %s", line[1]))
 	}
-	return &symbol{line[3], line[2], int(size)}, nil
+	name := strings.Join(line[3:], " ")
+	return &symbol{name, line[2], int(size)}, nil
 }
 
 // printDisasm prints out a side by side listing of the disassembly of a function.
@@ -284,8 +285,10 @@ func (bi *binaryInfo) parseNm() {
 	}
 	for scanner.Scan() {
 		line := strings.Fields(scanner.Text())
-		// format is "address size type name"
-		if len(line) != 4 {
+		// format is "address size type name" with
+		// - type being 1 character
+		// - symbol possibly having spaces
+		if len(line) < 4 || len(line[2]) != 1 {
 			continue
 		}
 		sym, err := parseSymbol(line)
