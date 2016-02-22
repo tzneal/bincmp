@@ -223,12 +223,10 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 		*sortRelative = false
 	}
 	if *sortDifference {
-		fmt.Printf("# Sort by size diff\n")
 		sort.Stable(symbolSort{symDiffs, bySizeDiff})
 		*sortRelative = false
 	}
 	if *sortRelative {
-		fmt.Printf("# Sort by rel size diff\n")
 		sort.Stable(symbolSort{symDiffs, byRelSizeDiff})
 	}
 
