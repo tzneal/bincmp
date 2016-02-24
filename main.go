@@ -1,3 +1,68 @@
+// symSizeComp compares symbol sizes between binaries
+//
+// Usage:
+//
+//	symSizeComp [options] oldBinary newBinary
+//
+// It runs nm to gather symbol sizes and report symbol by symbol differences
+// as well as differences summarized by linker section.  It can also optionally
+// use objdump to display a side-by-side disassembly of differing functions.
+//
+// The options are:
+//
+//	  -difference
+//		sort output by the symbol size difference (default true)
+//	  -disassemble
+//		display disassembly of non-matching functions
+//	  -larger
+//		only display larger symbols
+//	  -pattern string
+//		regular expression to match against symbols
+//	  -relative
+//		sort output by the relative symbol size difference
+//	  -size
+//		sort output by the new symbol size
+//
+//
+// Example
+//
+// Defaut usage, print symbol size differences and summary
+//
+//	$ symSizeComp  ~/Projects/go/bin/go ~/Projects/goclean/bin/go
+//	# symbol differences
+//	-4415 runtime.pclntab 1474439 1478854 -0.298542%
+//	-192 type..eq.net/url.URL 784 976 -19.672131%
+//	-176 type..eq.net.netFD 464 640 -27.500000%
+//	...
+//	-16 type..eq.net.nssCriterion 272 288 -5.555556%
+//	-16 type..eq.net/http.connectMethod 272 288 -5.555556%
+//
+//	# section differences
+//	read-only data = -4511 bytes (-0.284264%)
+//	global text (code) = -15904 bytes (-0.365848%)
+//	Total difference 20415 bytes (-0.326807%)
+//
+//
+// Filter on a single function and show the disassembly
+//
+//	$ symSizeComp --size --disassemble --pattern="type.*eq.*11.*float32" ~/Projects/go/bin/go ~/Projects/goclean/bin/go
+//	# symbol differences
+//	-16 type..eq.[11]float32 80 96 -16.666667%
+//	  571950:    mov    0x8(%rsp),%rdi                      5734b0:    mov    0x8(%rsp),%rdi
+//	  571955:    mov    0x10(%rsp),%rsi                     5734b5:    mov    0x10(%rsp),%rsi
+//	  57195a:    xor    %eax,%eax                           5734ba:    xor    %eax,%eax
+//	  57195c:    mov    $0xb,%rdx                           5734bc:    mov    $0xb,%rdx
+//	  571963:    cmp    %rdx,%rax                           5734c3:    cmp    %rdx,%rax
+//	  571966:    jge    571987 <type..eq.[11]float32+0x37>  5734c6:    jge    5734f3 <type..eq.[11]float32+0x43>
+//	  571968:    lea    (%rdi,%rax,4),%rbx                  5734c8:    cmp    $0x0,%rdi
+//	  57196c:    movss  (%rbx),%xmm0                        5734cc:    je     573503 <type..eq.[11]float32+0x53>
+//	  571970:    lea    (%rsi,%rax,4),%rbx                  5734ce:    lea    (%rdi,%rax,4),%rbx
+//	  571974:    movss  (%rbx),%xmm1                        5734d2:    movss  (%rbx),%xmm0
+//	  571978:    ucomiss %xmm0,%xmm1                        5734d6:    cmp    $0x0,%rsi
+//	  57197b:    jne    57198d <type..eq.[11]float32+0x3d>  5734da:    je     5734ff <type..eq.[11]float32+0x4f>
+//	  57197d:    jp     57198d <type..eq.[11]float32+0x3d>  5734dc:    lea    (%rsi,%rax,4),%rbx
+//	  57197f:    inc    %rax                                5734e0:    movss  (%rbx),%xmm1
+//	...
 package main
 
 import (
@@ -43,7 +108,7 @@ var (
 func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "%s [options] newBinary oldBinary\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "%s [options] oldBinary newBinary\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -53,9 +118,9 @@ func main() {
 		return
 	}
 
-	f1Bin := parseBinary(flag.Arg(0))
-	f2Bin := parseBinary(flag.Arg(1))
-	f1Bin.printDiff(f2Bin)
+	oldBin := parseBinary(flag.Arg(0))
+	newBin := parseBinary(flag.Arg(1))
+	newBin.printDiff(oldBin)
 }
 
 // run executes a process and returns a scanner that allows parsing stdout line
