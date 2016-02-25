@@ -120,7 +120,7 @@ func main() {
 
 	oldBin := parseBinary(flag.Arg(0))
 	newBin := parseBinary(flag.Arg(1))
-	newBin.printDiff(oldBin)
+	oldBin.printDiff(newBin)
 }
 
 // run executes a process and returns a scanner that allows parsing stdout line
@@ -194,30 +194,30 @@ func parseBinary(fn string) *binaryInfo {
 }
 
 type symDiff struct {
-	sym1, sym2 *symbol
+	old, new *symbol
 }
 
 // sizeDifference returns the difference in sizes between two symbols.
 func (sd *symDiff) sizeDifference() int {
-	return sd.sym1.size - sd.sym2.size
+	return sd.new.size - sd.old.size
 }
 
 // pctDifference returns the relative size difference between two symbols.
 func (sd *symDiff) pctDifference() float64 {
-	return 100 * (float64(sd.sym1.size)/float64(sd.sym2.size) - 1)
+	return 100 * (float64(sd.new.size)/float64(sd.old.size) - 1)
 }
 
 func (bi *binaryInfo) symbolDiff(bi2 *binaryInfo) []*symDiff {
 	ret := make([]*symDiff, 0)
-	for name, sym1 := range bi.symbols {
-		if sym2, ok := bi2.symbols[name]; ok {
-			if sym1.size == sym2.size {
+	for name, old := range bi.symbols {
+		if new, ok := bi2.symbols[name]; ok {
+			if old.size == new.size {
 				continue
 			}
-			if *onlyLarger && sym1.size < sym2.size {
+			if *onlyLarger && old.size < new.size {
 				continue
 			}
-			ret = append(ret, &symDiff{sym1, sym2})
+			ret = append(ret, &symDiff{old, new})
 		}
 	}
 	return ret
@@ -242,7 +242,7 @@ func (s symbolSort) Less(i, j int) bool {
 
 // bySize is used to sort symbol differences by the size of the new symbol.
 func bySize(s1, s2 *symDiff) bool {
-	return s1.sym1.size < s2.sym1.size
+	return s1.old.size < s2.old.size
 }
 
 // bySize is used to sort symbol differences by the absolute size difference.
@@ -271,7 +271,7 @@ func byRelSizeDiff(s1, s2 *symDiff) bool {
 
 // byName is used to sort symbol differences by the symbol name.
 func byName(s1, s2 *symDiff) bool {
-	return s1.sym1.name < s2.sym1.name
+	return s1.old.name < s2.old.name
 }
 
 // printDiff prints out differing symbols according to user flags, followed by a
@@ -298,10 +298,10 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 
 	fmt.Printf("# symbol differences\n")
 	for _, sym := range symDiffs {
-		fmt.Printf("%d %s %d %d %f%%\n", sym.sizeDifference(), sym.sym1.name, sym.sym1.size, sym.sym2.size, sym.pctDifference())
+		fmt.Printf("%d %s %d %d %f%%\n", sym.sizeDifference(), sym.old.name, sym.old.size, sym.new.size, sym.pctDifference())
 		if *disasmFunctions {
-			s1Dis := bi.disassembly[sym.sym1.name]
-			s2Dis := bi2.disassembly[sym.sym2.name]
+			s1Dis := bi.disassembly[sym.old.name]
+			s2Dis := bi2.disassembly[sym.new.name]
 			s1Dis.printDisasm(s2Dis)
 		}
 	}
