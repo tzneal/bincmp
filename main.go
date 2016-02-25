@@ -160,12 +160,14 @@ func (sym1 *dsym) printDisasm(sym2 *dsym) {
 	if sym1 == nil || sym2 == nil {
 		return
 	}
-	for i, j := 0, 0; i < len(sym1.code) && j < len(sym2.code); {
+	for i, j := 0, 0; i < len(sym1.code) || j < len(sym2.code); {
 		if i < len(sym1.code) {
 			fmt.Printf("%s", sym1.code[i])
+			// pad to the same length so the rhs listing will be aligned
+			printSpaces(sym1.maxLen - len(sym1.code[i]))
+		} else {
+			printSpaces(sym1.maxLen)
 		}
-		// pad to the same length so the rhs listing will be aligned
-		printSpaces(sym1.maxLen - len(sym1.code[i]))
 		if j < len(sym2.code) {
 			fmt.Printf("%s", sym2.code[j])
 		}
@@ -303,6 +305,7 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 			s1Dis := bi.disassembly[sym.old.name]
 			s2Dis := bi2.disassembly[sym.new.name]
 			s1Dis.printDisasm(s2Dis)
+			fmt.Println()
 		}
 	}
 
