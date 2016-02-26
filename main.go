@@ -216,7 +216,7 @@ func (bi *binaryInfo) symbolDiff(bi2 *binaryInfo) []*symDiff {
 			if old.size == new.size {
 				continue
 			}
-			if *onlyLarger && old.size < new.size {
+			if *onlyLarger && old.size > new.size {
 				continue
 			}
 			ret = append(ret, &symDiff{old, new})
