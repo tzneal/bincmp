@@ -287,12 +287,9 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 	// equivalent symbols sorted by name
 	if *sortSize {
 		sort.Stable(symbolSort{symDiffs, bySize})
-		*sortDifference = false
-		*sortRelative = false
 	}
 	if *sortDifference {
 		sort.Stable(symbolSort{symDiffs, bySizeDiff})
-		*sortRelative = false
 	}
 	if *sortRelative {
 		sort.Stable(symbolSort{symDiffs, byRelSizeDiff})
