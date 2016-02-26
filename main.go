@@ -319,17 +319,17 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 	fmt.Printf("\n# section differences\n")
 	var biTotSz, bi2TotSz int
 	for k := range bi.secSizes {
-		szDiff := bi.secSizes[k] - bi2.secSizes[k]
+		szDiff := bi2.secSizes[k] - bi.secSizes[k]
 		biTotSz += bi.secSizes[k]
 		bi2TotSz += bi2.secSizes[k]
 		if szDiff == 0 {
 			continue
 		}
-		pct := 100 * (float64(bi.secSizes[k])/float64(bi2.secSizes[k]) - 1)
+		pct := 100 * (float64(bi2.secSizes[k])/float64(bi.secSizes[k]) - 1)
 		fmt.Printf("%s = %d bytes (%f%%)\n", decodeType(k), szDiff, pct)
 	}
-	pct := 100 * (float64(biTotSz)/float64(bi2TotSz) - 1)
-	fmt.Printf("Total difference %d bytes (%f%%)\n", biTotSz-bi2TotSz, pct)
+	pct := 100 * (float64(bi2TotSz)/float64(biTotSz) - 1)
+	fmt.Printf("Total difference %d bytes (%f%%)\n", bi2TotSz-biTotSz, pct)
 
 }
 
