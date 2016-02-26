@@ -224,6 +224,13 @@ func (bi *binaryInfo) symbolDiff(bi2 *binaryInfo) []*symDiff {
 	}
 	return ret
 }
+func (bi *binaryInfo) hasDisassembly(sym string) bool {
+	dis, ok := bi.disassembly[sym]
+	if !ok {
+		return false
+	}
+	return len(dis.code) > 0
+}
 
 type symbolSort struct {
 	syms []*symDiff
@@ -297,12 +304,14 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 
 	fmt.Printf("# symbol differences\n")
 	for _, sym := range symDiffs {
-		fmt.Printf("%d %s %d %d %f%%\n", sym.sizeDifference(), sym.old.name, sym.old.size, sym.new.size, sym.pctDifference())
-		if *disasmFunctions {
+		if *disasmFunctions && bi.hasDisassembly(sym.old.name) {
+			fmt.Printf("%d %s %d %d %f%%\n", sym.sizeDifference(), sym.old.name, sym.old.size, sym.new.size, sym.pctDifference())
 			s1Dis := bi.disassembly[sym.old.name]
 			s2Dis := bi2.disassembly[sym.new.name]
 			s1Dis.printDisasm(s2Dis)
 			fmt.Println()
+		} else if !*disasmFunctions {
+			fmt.Printf("%d %s %d %d %f%%\n", sym.sizeDifference(), sym.old.name, sym.old.size, sym.new.size, sym.pctDifference())
 		}
 	}
 
