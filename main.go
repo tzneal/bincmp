@@ -87,6 +87,7 @@ type symbol struct {
 
 type binaryInfo struct {
 	filename    string
+	fileSize    int64
 	symbols     map[string]*symbol // symbol informatoin, indexed by symbol name
 	disassembly map[string]*dsym   // disassembly of functions, indexed by symbol name
 	secSizes    map[string]int     // section sizes, indexed by section symbol as reported by nm
@@ -185,12 +186,14 @@ func printSpaces(n int) {
 }
 
 func parseBinary(fn string) *binaryInfo {
-	if _, err := os.Stat(fn); os.IsNotExist(err) {
+	binfo := &binaryInfo{}
+	if st, err := os.Stat(fn); os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "%s doesn't exist\n", fn)
 		os.Exit(1)
+	} else {
+		binfo.fileSize = st.Size()
 	}
 
-	binfo := &binaryInfo{}
 	binfo.parse(fn)
 	return binfo
 }
@@ -292,11 +295,11 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 
 	// then use stable sorts by the user parameter to keep
 	// equivalent symbols sorted by name
-	if *sortSize {
-		sort.Stable(symbolSort{symDiffs, bySize})
-	}
 	if *sortDifference {
 		sort.Stable(symbolSort{symDiffs, bySizeDiff})
+	}
+	if *sortSize {
+		sort.Stable(symbolSort{symDiffs, bySize})
 	}
 	if *sortRelative {
 		sort.Stable(symbolSort{symDiffs, byRelSizeDiff})
@@ -316,6 +319,9 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 	}
 
 	// print a summary of the section size differences from bi to bi2
+	fmt.Printf("\n# file difference\n")
+	fmt.Printf("%s %d\n", bi.filename, bi.fileSize)
+	fmt.Printf("%s %d [%d bytes]\n", bi2.filename, bi2.fileSize, bi2.fileSize-bi.fileSize)
 	fmt.Printf("\n# section differences\n")
 	var biTotSz, bi2TotSz int
 	for k := range bi.secSizes {
