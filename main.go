@@ -418,6 +418,10 @@ func (bi *binaryInfo) parseObjdump() {
 
 			// TODO: Parse the output of objdump
 			code := strings.Replace(scanner.Text(), "\t", "    ", -1)
+			// Remove comments
+			if idx := strings.Index(code, "#"); idx != -1 {
+				code = code[0:idx]
+			}
 			sym.code = append(sym.code, code)
 			if len(code) > sym.maxLen {
 				sym.maxLen = len(code)
