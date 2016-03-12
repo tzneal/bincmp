@@ -422,6 +422,9 @@ func (bi *binaryInfo) parseObjdump() {
 			if idx := strings.Index(code, "#"); idx != -1 {
 				code = code[0:idx]
 			}
+			if idx := strings.Index(code, "<"); idx != -1 {
+				code = code[0:idx]
+			}
 			sym.code = append(sym.code, code)
 			if len(code) > sym.maxLen {
 				sym.maxLen = len(code)
