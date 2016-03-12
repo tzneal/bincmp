@@ -104,6 +104,7 @@ var (
 	pattern         = flag.String("pattern", "", "regular expression to match against symbols")
 	sortDifference  = flag.Bool("difference", true, "sort output by the symbol size difference")
 	sortRelative    = flag.Bool("relative", false, "sort output by the relative symbol size difference")
+	exactSize       = flag.Bool("exact", false, "remove padding bytes from the symbol sizes of functions by examining disassembly")
 )
 
 func main() {
@@ -343,7 +344,7 @@ func (bi *binaryInfo) printDiff(bi2 *binaryInfo) {
 func (bi *binaryInfo) parse(fn string) {
 	bi.filename = fn
 	bi.parseNm()
-	if *disasmFunctions {
+	if *disasmFunctions || *exactSize {
 		bi.parseObjdump()
 	}
 }
@@ -425,12 +426,37 @@ func (bi *binaryInfo) parseObjdump() {
 			if idx := strings.Index(code, "<"); idx != -1 {
 				code = code[0:idx]
 			}
+
+			code = strings.TrimSpace(code)
+			if len(code) == 0 {
+				continue
+			}
 			sym.code = append(sym.code, code)
 			if len(code) > sym.maxLen {
 				sym.maxLen = len(code)
 			}
 		}
 	}
+
+	if *exactSize {
+		for sn, sym := range bi.disassembly {
+			for i := len(sym.code) - 1; i >= 0; i-- {
+				if pb := paddingCnt(sym.code[i]); pb > 0 {
+					bi.symbols[sn].size -= pb
+				} else {
+					break
+				}
+			}
+		}
+	}
+}
+
+func paddingCnt(c string) int {
+	// TODO: Detect padding other than what the go compiler outputs on AMD64
+	if strings.HasSuffix(c, "int3") {
+		return 1
+	}
+	return 0
 }
 
 // decodeType maps section type characters to a more readable section name.
