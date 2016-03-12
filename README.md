@@ -8,7 +8,7 @@
 
 	$ symSizeComp 
 	Usage of symSizeComp:
-	symSizeComp [options] newBinary oldBinary
+	symSizeComp [options] oldBinary newBinary
 	  -difference
 		sort output by the symbol size difference (default true)
 	  -disassemble
@@ -76,5 +76,3 @@
 	  57199e:    int3                                       57350a:    int3   
 	  57199f:    int3                                       57350b:    int3   
 								57350c:    int3   
-
-
