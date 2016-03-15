@@ -14,6 +14,8 @@
 //		sort output by the symbol size difference (default true)
 //	  -disassemble
 //		display disassembly of non-matching functions
+//	  -exact
+//		remove padding bytes from the symbol sizes of functions by examining disassembly
 //	  -larger
 //		only display larger symbols
 //	  -pattern string
@@ -454,9 +456,9 @@ func (bi *binaryInfo) parseObjdump() {
 			for i := len(sym.code) - 1; i >= 0; i-- {
 				if pb := paddingCnt(sym.code[i]); pb > 0 {
 					bi.symbols[sn].size -= pb
-				} else if i-1 > 0 {
+				} else if i > 0 {
 					code := bi.disassembly[sn].code
-					bi.disassembly[sn].code = code[0 : i-1]
+					bi.disassembly[sn].code = code[0 : i+1]
 					break
 				}
 			}
