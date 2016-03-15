@@ -166,9 +166,9 @@ func (sym1 *dsym) printDisasm(sym2 *dsym) {
 		if i < len(sym1.code) {
 			fmt.Printf("%s", sym1.code[i])
 			// pad to the same length so the rhs listing will be aligned
-			printSpaces(sym1.maxLen - len(sym1.code[i]))
+			printSpaces(sym1.maxLen - len(sym1.code[i]) + 1)
 		} else {
-			printSpaces(sym1.maxLen)
+			printSpaces(sym1.maxLen + 1)
 		}
 		if j < len(sym2.code) {
 			fmt.Printf("%s", sym2.code[j])
@@ -386,6 +386,33 @@ func (bi *binaryInfo) parseNm() {
 	}
 }
 
+var (
+	// regexp for matching the start of disassembly for a symbol
+	startDis = regexp.MustCompile("^[0-9a-f]+ <(.*?)>:$")
+)
+
+// findDisSymbolName matches a symbol name in the output of objdump.
+func findDisSymbolName(c string) (string, bool) {
+	match := startDis.FindStringSubmatch(c)
+	if len(match) > 0 {
+		return match[1], true
+	}
+	return "", false
+}
+
+func cleanDis(s string) string {
+	code := strings.Replace(s, "\t", "    ", -1)
+	// Remove comments
+	if idx := strings.Index(code, "#"); idx != -1 {
+		code = code[0:idx]
+	}
+	// Remove symbols (shortens the text)
+	if idx := strings.Index(code, "<"); idx != -1 {
+		code = code[0:idx]
+	}
+	return strings.TrimSpace(code)
+}
+
 // parseObjDump is used to parse the output of the objdump -d command and find
 // the disassembly of function symbols.
 func (bi *binaryInfo) parseObjdump() {
@@ -397,20 +424,13 @@ func (bi *binaryInfo) parseObjdump() {
 	}
 	bi.disassembly = make(map[string]*dsym)
 
-	// regexp for matching the start of disassembly for a symbol
-	startDis, err := regexp.Compile("^[0-9a-f]+ <(.*?)>:$")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "bad regexp\n")
-		os.Exit(1)
-	}
-
 	var lastSym string
 	for scanner.Scan() {
-		match := startDis.FindStringSubmatch(scanner.Text())
-		if len(match) > 0 {
-			lastSym = match[1]
+		if pName, ok := findDisSymbolName(scanner.Text()); ok {
+			lastSym = pName
 			continue
 		}
+
 		if len(lastSym) > 0 {
 			if _, ok := bi.disassembly[lastSym]; !ok {
 				bi.disassembly[lastSym] = &dsym{}
@@ -418,16 +438,7 @@ func (bi *binaryInfo) parseObjdump() {
 			sym := bi.disassembly[lastSym]
 
 			// TODO: Parse the output of objdump
-			code := strings.Replace(scanner.Text(), "\t", "    ", -1)
-			// Remove comments
-			if idx := strings.Index(code, "#"); idx != -1 {
-				code = code[0:idx]
-			}
-			if idx := strings.Index(code, "<"); idx != -1 {
-				code = code[0:idx]
-			}
-
-			code = strings.TrimSpace(code)
+			code := cleanDis(scanner.Text())
 			if len(code) == 0 {
 				continue
 			}
@@ -443,7 +454,9 @@ func (bi *binaryInfo) parseObjdump() {
 			for i := len(sym.code) - 1; i >= 0; i-- {
 				if pb := paddingCnt(sym.code[i]); pb > 0 {
 					bi.symbols[sn].size -= pb
-				} else {
+				} else if i-1 > 0 {
+					code := bi.disassembly[sn].code
+					bi.disassembly[sn].code = code[0 : i-1]
 					break
 				}
 			}
