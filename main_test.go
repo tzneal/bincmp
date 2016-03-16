@@ -12,7 +12,7 @@ func TestPaddingCount(t *testing.T) {
 		{"6ae32e:    callq  4c7d00", 0}}
 	for _, tc := range testData {
 		if want, got := tc.count, paddingCnt(tc.code); want != got {
-			t.Error("expected padding count for %s = %d, got %d", tc.code, tc.count, got)
+			t.Errorf("expected padding count for %s = %d, got %d", tc.code, tc.count, got)
 		}
 	}
 }
@@ -29,7 +29,7 @@ func TestParseDisassemblySymbol(t *testing.T) {
 		{"0000000000401680 <main.addBuildFlags>:", true, "main.addBuildFlags"}}
 	for _, tc := range testData {
 		if gotSym, gotParsed := findDisSymbolName(tc.line); gotParsed != tc.parsed || gotSym != tc.symName {
-
+			t.Errorf("expected symbol = %s for '%s', got %s", tc.symName, tc.line, gotSym)
 		}
 	}
 }
