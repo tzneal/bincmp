@@ -1,0 +1,10 @@
+language: go
+
+go:
+  - 1.5
+  - 1.6
+  
+script:
+  - go vet ./...
+  - go test -v ./...
+  - GOFMT=$(gofmt -d -s .) && echo $GOFMT && test -z "$GOFMT"
