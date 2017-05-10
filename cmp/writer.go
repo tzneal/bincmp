@@ -33,7 +33,7 @@ func (s *stdoutWriter) StartSymbols() {
 
 func (s *stdoutWriter) WriteSymbol(symA, symB nm.Symbol) error {
 	if !symA.IsEmpty() && !symB.IsEmpty() {
-		delta := symA.Size - symB.Size
+		delta := symB.Size - symA.Size
 		pct := (float64(symB.Size)/float64(symA.Size) - 1) * 100
 		fmt.Fprintf(s.w, "%d\t%s\t%d\t%d\t%10.2f%%\n", delta, symA.Name, symA.Size, symB.Size, pct)
 	}
@@ -52,7 +52,7 @@ func (s *stdoutWriter) StartSections() {
 
 func (s *stdoutWriter) WriteSection(sectA, sectB readelf.Section) error {
 	if !sectA.IsEmpty() && !sectB.IsEmpty() {
-		delta := sectA.Size - sectB.Size
+		delta := sectB.Size - sectA.Size
 		pct := (float64(sectB.Size)/float64(sectA.Size) - 1) * 100
 		fmt.Fprintf(s.w, "%d\t%s\t%d\t%d\t%10.2f%%\n", delta, sectA.Name, sectA.Size, sectB.Size, pct)
 	}
