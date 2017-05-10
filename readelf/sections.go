@@ -102,8 +102,8 @@ func parseListSections(r io.Reader) ([]Section, error) {
 func parseHex(s string) int64 {
 	i, err := strconv.ParseInt(s, 16, 64)
 	if err != nil {
-		log.Println("error parsing hex %s: %s", s, err)
-		return 0
+		log.Printf("error parsing hex %s: %s", s, err)
+		return -1
 	}
 	return i
 }
