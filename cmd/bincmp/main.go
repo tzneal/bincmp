@@ -28,6 +28,8 @@ func main() {
 		Writer:  cmp.DefaultWriter,
 	}
 	cmp := cmp.NewComparer(flag.Arg(0), flag.Arg(1), opts)
+	cmp.CompareFiles()
+	fmt.Println()
 	cmp.CompareSymbols()
 	fmt.Println()
 	cmp.CompareSections()

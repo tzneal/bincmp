@@ -1,6 +1,7 @@
 package cmp
 
 import (
+	"os"
 	"regexp"
 
 	"github.com/tzneal/bincmp/nm"
@@ -30,6 +31,17 @@ func NewComparer(fileA, fileB string, o Options) *Comparer {
 		w:     o.Writer}
 }
 
+func (c *Comparer) CompareFiles() error {
+	aInf, err := os.Stat(c.fileA)
+	if err != nil {
+		return err
+	}
+	bInf, err := os.Stat(c.fileB)
+	if err != nil {
+		return err
+	}
+	return c.w.StartFiles(aInf, bInf)
+}
 func (c *Comparer) CompareSymbols() error {
 	aSyms, err := nm.ListSymbols(c.fileA)
 	if err != nil {
