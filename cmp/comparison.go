@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/tzneal/bincmp/nm"
+	"github.com/tzneal/bincmp/objdump"
 	"github.com/tzneal/bincmp/readelf"
 )
 
@@ -17,8 +18,9 @@ type Comparer struct {
 }
 
 type Options struct {
-	Pattern string
-	Writer  Writer
+	Pattern     string
+	Writer      Writer
+	Disassemble bool
 }
 
 // NewComparer creates a comparer used to compare between binaries
@@ -71,6 +73,21 @@ func (c *Comparer) CompareSymbols() error {
 		}
 		if err := c.w.WriteSymbol(aKnown[name], bKnown[name]); err != nil {
 			return err
+		}
+		if c.o.Disassemble {
+			fnA, err := objdump.DisassembleFunction(c.fileA, name)
+			if err != nil && !objdump.IsNotFound(err) {
+				return err
+			}
+			fnB, err := objdump.DisassembleFunction(c.fileB, name)
+			if err != nil && !objdump.IsNotFound(err) {
+				return err
+			}
+			// both are empty if it's not a function, one may be empty if
+			// the function has been removed
+			if !fnA.IsEmpty() || !fnB.IsEmpty() {
+				c.w.WriteDisassembly(fnA, fnB)
+			}
 		}
 	}
 

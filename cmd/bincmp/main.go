@@ -10,6 +10,7 @@ import (
 
 func main() {
 	pattern := flag.String("pattern", "", "regular expression to match against symbols")
+	disassemble := flag.Bool("disassemble", false, "dump objdump disassembly")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
@@ -24,8 +25,9 @@ func main() {
 	}
 
 	opts := cmp.Options{
-		Pattern: *pattern,
-		Writer:  cmp.DefaultWriter,
+		Pattern:     *pattern,
+		Writer:      cmp.DefaultWriter,
+		Disassemble: *disassemble,
 	}
 	cmp := cmp.NewComparer(flag.Arg(0), flag.Arg(1), opts)
 	cmp.CompareFiles()

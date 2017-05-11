@@ -6,6 +6,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/tzneal/bincmp/nm"
+	"github.com/tzneal/bincmp/objdump"
 	"github.com/tzneal/bincmp/readelf"
 )
 
@@ -15,6 +16,7 @@ type Writer interface {
 
 	StartSymbols()
 	WriteSymbol(symA, symB nm.Symbol) error
+	WriteDisassembly(fnA, fnB objdump.Function) error
 	EndSymbols()
 
 	StartSections()
@@ -45,6 +47,37 @@ func (s *stdoutWriter) StartSymbols() {
 	s.w = tabwriter.NewWriter(os.Stdout, 2, 2, 2, ' ', 0)
 	fmt.Fprintf(s.w, "symbol name\tdelta\told\tnew\n")
 	s.totals = [3]int64{}
+}
+
+func (s *stdoutWriter) WriteDisassembly(fnA, fnB objdump.Function) error {
+	// prepare for next call to write symbol
+	s.w.Flush()
+	s.w = tabwriter.NewWriter(os.Stdout, 2, 2, 2, ' ', 0)
+
+	tw := tabwriter.NewWriter(os.Stdout, 2, 2, 2, ' ', 0)
+	defer tw.Flush()
+	n := len(fnA.Asm)
+	if n < len(fnB.Asm) {
+		n = len(fnB.Asm)
+	}
+	for i := 0; i < n; i++ {
+		aAsm := ""
+		if i < len(fnA.Asm) {
+			aAsm = fnA.Asm[i].Asm
+		}
+		bAsm := ""
+		if i < len(fnB.Asm) {
+			bAsm = fnB.Asm[i].Asm
+		}
+
+		diff := ""
+		if aAsm != bAsm {
+			diff = "!"
+		}
+		fmt.Fprintf(tw, "%s\t%s\t%s\n", aAsm, diff, bAsm)
+	}
+	fmt.Fprintf(tw, "\n")
+	return nil
 }
 
 func (s *stdoutWriter) WriteSymbol(symA, symB nm.Symbol) error {
