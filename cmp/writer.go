@@ -5,6 +5,7 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"github.com/fatih/color"
 	"github.com/tzneal/bincmp/nm"
 	"github.com/tzneal/bincmp/objdump"
 	"github.com/tzneal/bincmp/readelf"
@@ -62,19 +63,30 @@ func (s *stdoutWriter) WriteDisassembly(fnA, fnB objdump.Function) error {
 	}
 	for i := 0; i < n; i++ {
 		aAsm := ""
+		aOff := ""
 		if i < len(fnA.Asm) {
 			aAsm = fnA.Asm[i].Asm
+			aOff = fmt.Sprintf("0x%x", fnA.Asm[i].Offset)
 		}
 		bAsm := ""
+		bOff := ""
 		if i < len(fnB.Asm) {
 			bAsm = fnB.Asm[i].Asm
+			bOff = fmt.Sprintf("0x%x", fnB.Asm[i].Offset)
 		}
 
 		diff := ""
+
+		// have to do it this way instead of a no-op color function, or
+		// else tabwriter gets confused on the character count
+		mark := color.New(color.FgHiWhite).SprintFunc()
+		hl := color.New(color.FgHiWhite).SprintFunc()
 		if aAsm != bAsm {
 			diff = "!"
+			mark = color.New(color.FgYellow).SprintFunc()
+			hl = color.New(color.FgHiGreen).SprintFunc()
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\n", aAsm, diff, bAsm)
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", aOff, aAsm, mark(diff), bOff, hl(bAsm))
 	}
 	fmt.Fprintf(tw, "\n")
 	return nil

@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/tzneal/bincmp/cmp"
 )
 
 func main() {
 	pattern := flag.String("pattern", "", "regular expression to match against symbols")
 	disassemble := flag.Bool("disassemble", false, "dump objdump disassembly")
+	noColor := flag.Bool("no-color", false, "force disable of color output")
+	forceColor := flag.Bool("color", false, "force color output, regardless of terminal")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
@@ -22,6 +25,16 @@ func main() {
 	if flag.NArg() != 2 {
 		flag.Usage()
 		return
+	}
+
+	switch {
+	case *forceColor && *noColor:
+		fmt.Fprint(os.Stderr, "--color and --no-color are incompatible")
+		os.Exit(1)
+	case *forceColor:
+		color.NoColor = false
+	case *noColor:
+		color.NoColor = true
 	}
 
 	opts := cmp.Options{
