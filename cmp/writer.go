@@ -147,7 +147,7 @@ func (s *stdoutWriter) WriteSection(sectA, sectB readelf.Section) error {
 		s.totals[1] += sectA.Size
 	} else if !sectB.IsEmpty() {
 		delta := sectB.Size
-		fmt.Fprintf(s.w, "%s\t%d\t\t%d\n", sectA.Name, delta, sectB.Size)
+		fmt.Fprintf(s.w, "%s\t%d\t\t%d\n", sectB.Name, delta, sectB.Size)
 		s.totals[0] += delta
 		s.totals[2] += sectB.Size
 	}

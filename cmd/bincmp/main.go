@@ -14,6 +14,7 @@ func main() {
 	disassemble := flag.Bool("disassemble", false, "dump objdump disassembly")
 	noColor := flag.Bool("no-color", false, "force disable of color output")
 	forceColor := flag.Bool("color", false, "force color output, regardless of terminal")
+	noSymTab := flag.Bool("no-symtab", false, "only show section size difs")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
@@ -45,7 +46,9 @@ func main() {
 	cmp := cmp.NewComparer(flag.Arg(0), flag.Arg(1), opts)
 	cmp.CompareFiles()
 	fmt.Println()
-	cmp.CompareSymbols()
-	fmt.Println()
+	if !*noSymTab {
+		cmp.CompareSymbols()
+		fmt.Println()
+	}
 	cmp.CompareSections()
 }
