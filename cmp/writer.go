@@ -93,7 +93,17 @@ func (s *stdoutWriter) WriteDisassembly(fnA, fnB objdump.Function) error {
 }
 
 func (s *stdoutWriter) WriteSymbol(symA, symB nm.Symbol) error {
-	symName := symA.Name
+	// If it's a symbol that is only present in A or B, we need to
+	// pick a non-empty name here (otherwise we would see an empty name
+	// in a report, which is not helpful).
+	var symName string
+	if symA.Name != "" {
+		symName = symA.Name
+	} else if symB.Name != "" {
+		symName = symB.Name
+	} else {
+		symName = "<?>" // Should never happen
+	}
 	if len(symName) > MaxSymLen {
 		symName = symName[0:MaxSymLen/2] + "..." + symName[len(symName)-MaxSymLen/2-3:]
 	}
@@ -112,7 +122,7 @@ func (s *stdoutWriter) WriteSymbol(symA, symB nm.Symbol) error {
 		s.totals[1] += symA.Size
 	} else if !symB.IsEmpty() {
 		delta := symB.Size
-		fmt.Fprintf(s.w, "%s\t%d\t\t%d\n", symName, delta, symA.Size)
+		fmt.Fprintf(s.w, "%s\t%d\t\t%d\n", symName, delta, symB.Size)
 		s.totals[0] += delta
 		s.totals[2] += symB.Size
 	}
